@@ -117,15 +117,20 @@ unsigned char multiply_by_3(unsigned char input){
 }
 
 
-unsigned char* mix_columns(unsigned char* a){
-    unsigned char * output = malloc(16);
+void mix_columns(unsigned char* state){
+    unsigned char * result = malloc(16);
     for(int i = 0; i < 4; i++){
-        output[0 + 4 * i] = multiply_by_2(a[0 + 4 * i]) ^ multiply_by_3(a[1 + 4 * i])^ a[2 + 4 * i] ^ a[3 + 4 * i];
-        output[1 + 4 * i] = a[0 + 4 * i] ^ multiply_by_2(a[1 + 4 * i]) ^ multiply_by_3(a[2 + 4 * i]) ^ a[3 + 4 * i];
-        output[2 + 4 * i] = a[0 + 4 * i] ^ a[1 + 4 * i] ^ multiply_by_2(a[2 + 4 * i]) ^ multiply_by_3(a[3 + 4 * i]);
-        output[3 + 4 * i] = multiply_by_3(a[0 + 4 * i]) ^ a[1 + 4 * i] ^ a[2 + 4 * i] ^ multiply_by_2(a[3 + 4 * i]);
+        result[0 + 4 * i] = multiply_by_2(state[0 + 4 * i]) ^ multiply_by_3(state[1 + 4 * i]) ^ state[2 + 4 * i] ^ state[3 + 4 * i];
+        result[1 + 4 * i] = state[0 + 4 * i] ^ multiply_by_2(state[1 + 4 * i]) ^ multiply_by_3(state[2 + 4 * i]) ^ state[3 + 4 * i];
+        result[2 + 4 * i] = state[0 + 4 * i] ^ state[1 + 4 * i] ^ multiply_by_2(state[2 + 4 * i]) ^ multiply_by_3(state[3 + 4 * i]);
+        result[3 + 4 * i] = multiply_by_3(state[0 + 4 * i]) ^ state[1 + 4 * i] ^ state[2 + 4 * i] ^ multiply_by_2(state[3 + 4 * i]);
     }
-    return output;
+
+    for(int i = 0; i < 16; i++)
+    {
+        state[i] = result[i];
+    }
+    free(result);
 }
 
 void add_round_key(const unsigned char* key, unsigned char* state){
@@ -233,7 +238,7 @@ unsigned char* aes(unsigned char* key,unsigned char* state){
 //        printHexArray(state);
         shift_rows(state);
 //        printHexArray(state);
-        state = mix_columns(state);
+        mix_columns(state);
 //        printHexArray(state);
         add_round_key(keys + (16 * i) + 16,  state);
 //        printHexArray(state);
@@ -313,7 +318,7 @@ unsigned int fi (unsigned int key, int i)
 int main()
 {
 
-    //int32_t * T[256][100];
+    unsigned int * T[256][100];
 
     for (int table_index = 0; table_index < 256; table_index++)
     {
@@ -321,7 +326,7 @@ int main()
         {
             int t_max = (pow(2, 24)/(256*m));
 
-            int32_t row[t_max];
+            unsigned int row[t_max];
 
             for (int t = 0; t < t_max; ++t)
             {
@@ -338,7 +343,7 @@ int main()
 
             printf("table %d ; m %u\n", table_index, m );
 
-            // T[table_index][m] = row;
+            T[table_index][m] = row;
 
         }
     }
