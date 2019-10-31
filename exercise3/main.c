@@ -72,7 +72,7 @@ unsigned int MI[] = {
 
 unsigned char *pad_string(unsigned char *input);
 
-const unsigned char PLAINTEXT[] = "some plaintext";
+unsigned char PLAINTEXT[] = "some plaintext";
 
 int hex2int(char ch)
 {
@@ -85,12 +85,10 @@ int hex2int(char ch)
     return -1;
 }
 
-unsigned char* sub_bytes(unsigned char* input) {
-    unsigned char* output = malloc(16);
+void sub_bytes(unsigned char* state) {
     for(int i = 0; i < 16; i++){
-        output[i] = S[input[i]];
+        state[i] = S[state[i]];
     }
-    return output;
 }
 
 unsigned char sub_byte_inv(unsigned char input) {
@@ -160,6 +158,7 @@ unsigned char* shift_rows(const unsigned char* state){
     result[7] = state[3];
     result[11] = state[7];
     result[15] = state[11];
+    
     return result;
 }
 
@@ -228,7 +227,7 @@ unsigned char* aes(unsigned char* key,unsigned char* state){
     state = add_round_key(keys, state);
 //    printHexArray(state);
     for(int i=0; i<9; i++){
-        state = sub_bytes(state);
+        sub_bytes(state);
 //        printHexArray(state);
         state = shift_rows(state);
 //        printHexArray(state);
@@ -237,12 +236,16 @@ unsigned char* aes(unsigned char* key,unsigned char* state){
         state = add_round_key(keys + (16 * i) + 16,  state);
 //        printHexArray(state);
     }
-    state = sub_bytes(state);
+    sub_bytes(state);
 //    printHexArray(state);
     state = shift_rows(state);
 //    printHexArray(state);
     state = add_round_key(keys + 64, state);
 //    printHexArray(state);
+
+
+    free(key);
+    free(keys);
 
     unsigned char * out = malloc(3);
     for(int i = 0; i < 3; i++)
@@ -281,11 +284,11 @@ int sum(unsigned char* array)
     return sum;
 }
 
-unsigned int32_t (unsigned char * k)
+unsigned char * f (unsigned char * k)
 {
 
 
-    unsigned char * cipher = malloc(3);
+    unsigned char * cipher;
 
 
     cipher = aes(k, PLAINTEXT);
@@ -295,16 +298,29 @@ unsigned int32_t (unsigned char * k)
 
 }
 
-unsigned int32_t fi (unsigned char * k, int i)
+unsigned int fi (unsigned int key, int i)
 {
 
+    // https://stackoverflow.com/a/44138161
+    unsigned char msb = (key >> 16) & 0xff;
+    unsigned char msb1 = (key >> 8) & 0xff;
+    unsigned char lsb = key & 0xff;
+
+    unsigned char * k = malloc(3);
+    k[0] = msb;
+    k[1] = msb1;
+    k[2] = lsb;
+
     unsigned char * f_result = f(k);
+
 
     // https://stackoverflow.com/a/49770589
     int32_t value;
     uint8_t extension = f_result[2] & 0x80 ? 0xff:00; /* checks bit 7 */
     value = (int32_t)f_result[0] | ((int32_t)f_result[1] << 8) | ((int32_t)f_result[2] << 16) | ((int32_t)extension << 24);
 
+    free(f_result);
+    free(k);
 
     return (value + i) % (int) pow(2, 24);
 }
@@ -312,31 +328,31 @@ unsigned int32_t fi (unsigned char * k, int i)
 int main()
 {
 
-    unsigned char k[] = {0x01, 0x02, 0x03};
-
-    int32_t T[256][100][];
+    int32_t * T[256][100];
 
     for (int table_index = 0; table_index < 256; table_index++)
     {
-        for(int m = 0; m < 100; m++)
+        for(unsigned int m = 1; m <= 100; m++)
         {
             int t_max = (pow(2, 24)/(256*m));
 
-            int32_t table[t_max];
+            int32_t row[t_max];
 
             for (int t = 0; t < t_max; ++t)
             {
                 if(t == 0)
                 {
-                    table[t] = m;
+                    row[t] = m;
                 }
                 else
                 {
-                    table[t] = fi(table[t-1], t);
+                    row[t] = fi(row[t-1], t);
                 }
             }
 
-            T[table_index][m] = table;
+            printf("table %d ; m %u\n", table_index, m );
+
+            T[table_index][m] = row;
 
         }
     }
