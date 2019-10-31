@@ -35,6 +35,11 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 
+
+exercise3/cmake-build-debug/*.csv
+
+
+
 ### CMake Patch ###
 # External projects
 *-prefix/

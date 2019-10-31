@@ -318,6 +318,8 @@ unsigned int fi (unsigned int key, int i)
 int main()
 {
 
+    FILE *hFile = fopen("hellmann.csv", "w");
+
     unsigned int * T[256][100];
 
     for (int table_index = 0; table_index < 256; table_index++)
@@ -338,17 +340,21 @@ int main()
                 {
                     row[t] = fi(row[t-1], t);
                 }
+
+                fprintf(hFile, "%u,", row[t]);
             }
 
 
-            printf("table %d ; m %u\n", table_index, m );
+            printf("table %d ; m %u\n", table_index, m);
 
             T[table_index][m] = row;
+
+            fprintf(hFile, "\n");
 
         }
     }
 
-
+    fclose(hFile);
 
     return 0;
 }
