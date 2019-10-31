@@ -281,7 +281,7 @@ int sum(unsigned char* array)
     return sum;
 }
 
-unsigned char * f (unsigned char * k)
+unsigned int32_t (unsigned char * k)
 {
 
 
@@ -295,7 +295,7 @@ unsigned char * f (unsigned char * k)
 
 }
 
-unsigned char * fi (unsigned char * k, int i)
+unsigned int32_t fi (unsigned char * k, int i)
 {
 
     unsigned char * f_result = f(k);
@@ -313,7 +313,34 @@ int main()
 {
 
     unsigned char k[] = {0x01, 0x02, 0x03};
-    unsigned char * test = f(k);
+
+    int32_t T[256][100][];
+
+    for (int table_index = 0; table_index < 256; table_index++)
+    {
+        for(int m = 0; m < 100; m++)
+        {
+            int t_max = (pow(2, 24)/(256*m));
+
+            int32_t table[t_max];
+
+            for (int t = 0; t < t_max; ++t)
+            {
+                if(t == 0)
+                {
+                    table[t] = m;
+                }
+                else
+                {
+                    table[t] = fi(table[t-1], t);
+                }
+            }
+
+            T[table_index][m] = table;
+
+        }
+    }
+
 
 
     return 0;
