@@ -11,8 +11,10 @@ void printHexArray(unsigned char* a){
     printf("\n");
 }
 
+#define L 256
+
 void print256HexArray(unsigned char* a){
-    for(int i = 0; i < 256; i++){
+    for(int i = 0; i < L; i++){
         printf("%x ",a[i]);
     }
     printf("\n");
@@ -98,6 +100,8 @@ unsigned char sub_byte_inv(unsigned char input) {
 }
 
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
+
+#define M 256
 
 unsigned char multiply_by_2(unsigned char input){
     unsigned char output;
@@ -320,13 +324,13 @@ int main()
 
     FILE *hFile = fopen("hellmann.csv", "w");
 
-    unsigned int * T[256][100];
+    unsigned int * T[L][M];
 
-    for (int table_index = 0; table_index < 256; table_index++)
+    for (int table_index = 0; table_index < L; table_index++)
     {
-        for(unsigned int m = 1; m <= 100; m++)
+        for(unsigned int m = 1; m <= M; m++)
         {
-            int t_max = (pow(2, 24)/(256*m));
+            int t_max = (pow(2, 24)/(L*m));
 
             unsigned int row[t_max];
 
@@ -334,7 +338,7 @@ int main()
             {
                 if(t == 0)
                 {
-                    row[t] = m;
+                    row[t] = m; // should this be table_index * m ?
                 }
                 else
                 {
