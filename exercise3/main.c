@@ -128,15 +128,13 @@ unsigned char* mix_columns(unsigned char* a){
     return output;
 }
 
-unsigned char* add_round_key(const unsigned char* key, const unsigned char* state){
-    unsigned char* result = malloc(16);
+void add_round_key(const unsigned char* key, unsigned char* state){
     for(int i = 0; i < 16; i++){
-        result[i] = key[i]^state[i];
+        state[i] = key[i]^state[i];
     }
-    return result;
 }
 
-unsigned char* shift_rows(const unsigned char* state){
+unsigned char* shift_rows(unsigned char* state){
     unsigned char* result = malloc(16);
 
     result[0] = state[0];
@@ -158,7 +156,7 @@ unsigned char* shift_rows(const unsigned char* state){
     result[7] = state[3];
     result[11] = state[7];
     result[15] = state[11];
-    
+
     return result;
 }
 
@@ -224,7 +222,7 @@ unsigned char* aes(unsigned char* key,unsigned char* state){
 
     keys = key_expansion(key);
 //    printHexArray(state);
-    state = add_round_key(keys, state);
+    add_round_key(keys, state);
 //    printHexArray(state);
     for(int i=0; i<9; i++){
         sub_bytes(state);
@@ -233,14 +231,14 @@ unsigned char* aes(unsigned char* key,unsigned char* state){
 //        printHexArray(state);
         state = mix_columns(state);
 //        printHexArray(state);
-        state = add_round_key(keys + (16 * i) + 16,  state);
+        add_round_key(keys + (16 * i) + 16,  state);
 //        printHexArray(state);
     }
     sub_bytes(state);
 //    printHexArray(state);
     state = shift_rows(state);
 //    printHexArray(state);
-    state = add_round_key(keys + 64, state);
+    add_round_key(keys + 64, state);
 //    printHexArray(state);
 
 
@@ -265,23 +263,6 @@ unsigned char *pad_string(unsigned char *input) {
 
     return output;
 
-}
-
-unsigned char*  generate_plain_text(unsigned char* plain_text, int value, int index, int const_value){
-    for(int i = 0; i < 16; i++){
-        plain_text[i] = const_value;
-    }
-    plain_text[index] = value;
-    return plain_text;
-}
-
-int sum(unsigned char* array)
-{
-    int sum = array[0];
-    for(int i = 1; i < 256; i++){
-        sum = sum ^ array[i];
-    }
-    return sum;
 }
 
 unsigned char * f (unsigned char * k)
@@ -328,7 +309,7 @@ unsigned int fi (unsigned int key, int i)
 int main()
 {
 
-    int32_t * T[256][100];
+    //int32_t * T[256][100];
 
     for (int table_index = 0; table_index < 256; table_index++)
     {
@@ -350,9 +331,10 @@ int main()
                 }
             }
 
+
             printf("table %d ; m %u\n", table_index, m );
 
-            T[table_index][m] = row;
+            // T[table_index][m] = row;
 
         }
     }
