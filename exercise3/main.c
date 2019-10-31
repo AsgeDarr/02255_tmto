@@ -134,7 +134,7 @@ void add_round_key(const unsigned char* key, unsigned char* state){
     }
 }
 
-unsigned char* shift_rows(unsigned char* state){
+void shift_rows(unsigned char* state){
     unsigned char* result = malloc(16);
 
     result[0] = state[0];
@@ -157,7 +157,11 @@ unsigned char* shift_rows(unsigned char* state){
     result[11] = state[7];
     result[15] = state[11];
 
-    return result;
+    for(int i = 0; i < 16; i++)
+    {
+        state[i] = result[i];
+    }
+    free(result);
 }
 
 
@@ -227,7 +231,7 @@ unsigned char* aes(unsigned char* key,unsigned char* state){
     for(int i=0; i<9; i++){
         sub_bytes(state);
 //        printHexArray(state);
-        state = shift_rows(state);
+        shift_rows(state);
 //        printHexArray(state);
         state = mix_columns(state);
 //        printHexArray(state);
@@ -236,7 +240,7 @@ unsigned char* aes(unsigned char* key,unsigned char* state){
     }
     sub_bytes(state);
 //    printHexArray(state);
-    state = shift_rows(state);
+    shift_rows(state);
 //    printHexArray(state);
     add_round_key(keys + 64, state);
 //    printHexArray(state);
