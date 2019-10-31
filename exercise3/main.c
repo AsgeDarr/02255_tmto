@@ -72,7 +72,7 @@ unsigned int MI[] = {
 
 unsigned char *pad_string(unsigned char *input);
 
-const unsigned char PLAINTEXT[] = "some plaintext";
+unsigned char PLAINTEXT[] = "some plaintext";
 
 int hex2int(char ch)
 {
@@ -85,12 +85,10 @@ int hex2int(char ch)
     return -1;
 }
 
-unsigned char* sub_bytes(unsigned char* input) {
-    unsigned char* output = malloc(16);
+void sub_bytes(unsigned char* state) {
     for(int i = 0; i < 16; i++){
-        output[i] = S[input[i]];
+        state[i] = S[state[i]];
     }
-    return output;
 }
 
 unsigned char sub_byte_inv(unsigned char input) {
@@ -119,26 +117,29 @@ unsigned char multiply_by_3(unsigned char input){
 }
 
 
-unsigned char* mix_columns(unsigned char* a){
-    unsigned char * output = malloc(16);
+void mix_columns(unsigned char* state){
+    unsigned char * result = malloc(16);
     for(int i = 0; i < 4; i++){
-        output[0 + 4 * i] = multiply_by_2(a[0 + 4 * i]) ^ multiply_by_3(a[1 + 4 * i])^ a[2 + 4 * i] ^ a[3 + 4 * i];
-        output[1 + 4 * i] = a[0 + 4 * i] ^ multiply_by_2(a[1 + 4 * i]) ^ multiply_by_3(a[2 + 4 * i]) ^ a[3 + 4 * i];
-        output[2 + 4 * i] = a[0 + 4 * i] ^ a[1 + 4 * i] ^ multiply_by_2(a[2 + 4 * i]) ^ multiply_by_3(a[3 + 4 * i]);
-        output[3 + 4 * i] = multiply_by_3(a[0 + 4 * i]) ^ a[1 + 4 * i] ^ a[2 + 4 * i] ^ multiply_by_2(a[3 + 4 * i]);
+        result[0 + 4 * i] = multiply_by_2(state[0 + 4 * i]) ^ multiply_by_3(state[1 + 4 * i]) ^ state[2 + 4 * i] ^ state[3 + 4 * i];
+        result[1 + 4 * i] = state[0 + 4 * i] ^ multiply_by_2(state[1 + 4 * i]) ^ multiply_by_3(state[2 + 4 * i]) ^ state[3 + 4 * i];
+        result[2 + 4 * i] = state[0 + 4 * i] ^ state[1 + 4 * i] ^ multiply_by_2(state[2 + 4 * i]) ^ multiply_by_3(state[3 + 4 * i]);
+        result[3 + 4 * i] = multiply_by_3(state[0 + 4 * i]) ^ state[1 + 4 * i] ^ state[2 + 4 * i] ^ multiply_by_2(state[3 + 4 * i]);
     }
-    return output;
+
+    for(int i = 0; i < 16; i++)
+    {
+        state[i] = result[i];
+    }
+    free(result);
 }
 
-unsigned char* add_round_key(const unsigned char* key, const unsigned char* state){
-    unsigned char* result = malloc(16);
+void add_round_key(const unsigned char* key, unsigned char* state){
     for(int i = 0; i < 16; i++){
-        result[i] = key[i]^state[i];
+        state[i] = key[i]^state[i];
     }
-    return result;
 }
 
-unsigned char* shift_rows(const unsigned char* state){
+void shift_rows(unsigned char* state){
     unsigned char* result = malloc(16);
 
     result[0] = state[0];
@@ -160,7 +161,12 @@ unsigned char* shift_rows(const unsigned char* state){
     result[7] = state[3];
     result[11] = state[7];
     result[15] = state[11];
-    return result;
+
+    for(int i = 0; i < 16; i++)
+    {
+        state[i] = result[i];
+    }
+    free(result);
 }
 
 
@@ -225,24 +231,28 @@ unsigned char* aes(unsigned char* key,unsigned char* state){
 
     keys = key_expansion(key);
 //    printHexArray(state);
-    state = add_round_key(keys, state);
+    add_round_key(keys, state);
 //    printHexArray(state);
     for(int i=0; i<9; i++){
-        state = sub_bytes(state);
+        sub_bytes(state);
 //        printHexArray(state);
-        state = shift_rows(state);
+        shift_rows(state);
 //        printHexArray(state);
-        state = mix_columns(state);
+        mix_columns(state);
 //        printHexArray(state);
-        state = add_round_key(keys + (16 * i) + 16,  state);
+        add_round_key(keys + (16 * i) + 16,  state);
 //        printHexArray(state);
     }
-    state = sub_bytes(state);
+    sub_bytes(state);
 //    printHexArray(state);
-    state = shift_rows(state);
+    shift_rows(state);
 //    printHexArray(state);
-    state = add_round_key(keys + 64, state);
+    add_round_key(keys + 64, state);
 //    printHexArray(state);
+
+
+    free(key);
+    free(keys);
 
     unsigned char * out = malloc(3);
     for(int i = 0; i < 3; i++)
@@ -264,28 +274,11 @@ unsigned char *pad_string(unsigned char *input) {
 
 }
 
-unsigned char*  generate_plain_text(unsigned char* plain_text, int value, int index, int const_value){
-    for(int i = 0; i < 16; i++){
-        plain_text[i] = const_value;
-    }
-    plain_text[index] = value;
-    return plain_text;
-}
-
-int sum(unsigned char* array)
-{
-    int sum = array[0];
-    for(int i = 1; i < 256; i++){
-        sum = sum ^ array[i];
-    }
-    return sum;
-}
-
 unsigned char * f (unsigned char * k)
 {
 
 
-    unsigned char * cipher = malloc(3);
+    unsigned char * cipher;
 
 
     cipher = aes(k, PLAINTEXT);
@@ -295,16 +288,29 @@ unsigned char * f (unsigned char * k)
 
 }
 
-unsigned char * fi (unsigned char * k, int i)
+unsigned int fi (unsigned int key, int i)
 {
 
+    // https://stackoverflow.com/a/44138161
+    unsigned char msb = (key >> 16) & 0xff;
+    unsigned char msb1 = (key >> 8) & 0xff;
+    unsigned char lsb = key & 0xff;
+
+    unsigned char * k = malloc(3);
+    k[0] = msb;
+    k[1] = msb1;
+    k[2] = lsb;
+
     unsigned char * f_result = f(k);
+
 
     // https://stackoverflow.com/a/49770589
     int32_t value;
     uint8_t extension = f_result[2] & 0x80 ? 0xff:00; /* checks bit 7 */
     value = (int32_t)f_result[0] | ((int32_t)f_result[1] << 8) | ((int32_t)f_result[2] << 16) | ((int32_t)extension << 24);
 
+    free(f_result);
+    free(k);
 
     return (value + i) % (int) pow(2, 24);
 }
@@ -312,8 +318,36 @@ unsigned char * fi (unsigned char * k, int i)
 int main()
 {
 
-    unsigned char k[] = {0x01, 0x02, 0x03};
-    unsigned char * test = f(k);
+    unsigned int * T[256][100];
+
+    for (int table_index = 0; table_index < 256; table_index++)
+    {
+        for(unsigned int m = 1; m <= 100; m++)
+        {
+            int t_max = (pow(2, 24)/(256*m));
+
+            unsigned int row[t_max];
+
+            for (int t = 0; t < t_max; ++t)
+            {
+                if(t == 0)
+                {
+                    row[t] = m;
+                }
+                else
+                {
+                    row[t] = fi(row[t-1], t);
+                }
+            }
+
+
+            printf("table %d ; m %u\n", table_index, m );
+
+            T[table_index][m] = row;
+
+        }
+    }
+
 
 
     return 0;
