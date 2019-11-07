@@ -322,7 +322,7 @@ unsigned int fi (unsigned int key, int i)
 int main()
 {
 
-    FILE *hFile = fopen("hellmann.csv", "w");
+    FILE *hFile = fopen("hellman.csv", "w");
 
     unsigned int * T[L][M];
 
