@@ -351,7 +351,7 @@ int main()
 
             printf("table %d ; m %u\n", table_index, m);
 
-            T[table_index][m] = row;
+            T[table_index][m-1] = row;
 
             fprintf(hFile, "\n");
 
