@@ -322,12 +322,15 @@ unsigned int fi (unsigned int key, int i)
 int main()
 {
 
-    FILE *hFile = fopen("hellman.csv", "w");
+
 
     unsigned int * T[L][M];
 
     for (int table_index = 0; table_index < L; table_index++)
     {
+        char filename[20];
+        snprintf(filename, sizeof filename, "hellman%d.csv", table_index);
+        FILE *hFile = fopen(filename, "w");
         for(unsigned int m = 1; m <= M; m++)
         {
             int t_max = (pow(2, 24)/(L*m));
@@ -344,21 +347,23 @@ int main()
                 {
                     row[t] = fi(row[t-1], table_index);
                 }
+                if(t == t_max){
+                    fprintf(hFile, "%u", row[t]);
+                } else {
+                    fprintf(hFile, "%u,", row[t]);
+                }
 
-                fprintf(hFile, "%u,", row[t]);
+
             }
 
 
             printf("table %d ; m %u\n", table_index, m);
-
             T[table_index][m-1] = row;
-
             fprintf(hFile, "\n");
-
         }
+        fclose(hFile);
     }
 
-    fclose(hFile);
 
     return 0;
 }
