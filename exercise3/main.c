@@ -334,7 +334,7 @@ int main()
 
             unsigned int row[t_max];
 
-            for (int t = 0; t < t_max; ++t)
+            for (int t = 0; t < t_max; t++)
             {
                 if(t == 0)
                 {
@@ -342,7 +342,7 @@ int main()
                 }
                 else
                 {
-                    row[t] = fi(row[t-1], t);
+                    row[t] = fi(row[t-1], table_index);
                 }
 
                 fprintf(hFile, "%u,", row[t]);
