@@ -47,3 +47,6 @@ exercise3/cmake-build-debug/*.csv
 # End of https://www.gitignore.io/api/cmake
 
 
+exercise3/rainbow.csv 
+
+exercise3/hellman.csv 
