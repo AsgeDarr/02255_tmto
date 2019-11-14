@@ -343,7 +343,7 @@ int main()
                 {
                     row[t] = fi(row[t-1], table_index);
                 }
-                if(t == T_MAX){
+                if(t == T_MAX - 1){
                     fprintf(hFile, "%u", row[t]);
                 } else {
                     fprintf(hFile, "%u,", row[t]);
