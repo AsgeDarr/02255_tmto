@@ -12,6 +12,7 @@ void printHexArray(unsigned char* a){
 }
 
 #define L 256
+#define T_MAX 256
 
 void print256HexArray(unsigned char* a){
     for(int i = 0; i < L; i++){
@@ -321,9 +322,6 @@ unsigned int fi (unsigned int key, int i)
 
 int main()
 {
-
-
-
     unsigned int * T[L][M];
 
     for (int table_index = 0; table_index < L; table_index++)
@@ -333,11 +331,9 @@ int main()
         FILE *hFile = fopen(filename, "w");
         for(unsigned int m = 1; m <= M; m++)
         {
-            int t_max = (pow(2, 24)/(L*m));
+            unsigned int row[T_MAX];
 
-            unsigned int row[t_max];
-
-            for (int t = 0; t < t_max; t++)
+            for (int t = 0; t < T_MAX; t++)
             {
                 if(t == 0)
                 {
@@ -347,7 +343,7 @@ int main()
                 {
                     row[t] = fi(row[t-1], table_index);
                 }
-                if(t == t_max){
+                if(t == T_MAX){
                     fprintf(hFile, "%u", row[t]);
                 } else {
                     fprintf(hFile, "%u,", row[t]);
@@ -358,7 +354,9 @@ int main()
 
 
             printf("table %d ; m %u\n", table_index, m);
-            T[table_index][m-1] = row;
+
+            T[table_index][m - 1] = row;
+
             fprintf(hFile, "\n");
         }
         fclose(hFile);
