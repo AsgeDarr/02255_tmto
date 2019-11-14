@@ -324,11 +324,11 @@ int main()
 {
     unsigned int * T[L][M];
 
+    FILE *hFile = fopen("hellman.csv", "w");
+
     for (int table_index = 0; table_index < L; table_index++)
     {
-        char filename[20];
-        snprintf(filename, sizeof filename, "hellman%d.csv", table_index);
-        FILE *hFile = fopen(filename, "w");
+
         for(unsigned int m = 1; m <= M; m++)
         {
             unsigned int row[T_MAX];
@@ -359,8 +359,8 @@ int main()
 
             fprintf(hFile, "\n");
         }
-        fclose(hFile);
     }
+    fclose(hFile);
 
 
     return 0;
